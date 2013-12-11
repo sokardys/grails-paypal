@@ -136,9 +136,11 @@ REQUEST INFO: ${params}
 		}
 		else {
 			payment = new Payment(params)
-			payment.addToPaymentItems(new PaymentItem(params))
+			def paymentItem = new PaymentItem(params)
+			paymentItem.amount = PaymentItem.convertStringToBigDecimal(params.amount)
+			paymentItem.discountAmount = PaymentItem.convertStringToBigDecimal(params.discountAmount)
+			payment.addToPaymentItems(paymentItem)
 		}
-
 		if (payment?.id) log.debug "Resuming existing transaction $payment"
 		if (payment?.validate()) {
 			request.payment = payment
@@ -149,7 +151,7 @@ REQUEST INFO: ${params}
 			def login = params.email ?: config.email
 			if (!server || !login) throw new IllegalStateException("Paypal misconfigured! You need to specify the Paypal server URL and/or account email. Refer to documentation.")
 
-			def commonParams = [buyerId: payment.buyerId, transactionId: payment.transactionId]
+			def commonParams = [buyerId: payment.buyerId, transactionId: payment.transactionId, cuponId: params?.cuponId]
 			if (params.returnAction) {
 				commonParams.returnAction = params.returnAction
 			}
@@ -178,18 +180,19 @@ REQUEST INFO: ${params}
             }
 			url << "tax=${payment.tax}&"
 			url << "currency_code=${payment.currency}&"
-			if (params.lc) 
+			if (params.lc)
 			    url << "lc=${params.lc}&"
 			url << "notify_url=${notifyURL}&"
 			url << "return=${successURL}&"
 			url << "cancel_return=${cancelURL}"
 
-			log.debug "Redirection to PayPal with URL: $url"
+			log.info "Redirection to PayPal with URL: $url"
 
 			redirect(url: url)
 		}
 		else {
 			flash.payment = payment
+			flash.error = "Problemas en la conexión con Paypal. ¡Déjanos un mensaje!"
 			redirect(url: params.originalURL)
 		}
 	}

@@ -9,16 +9,16 @@ class PaypalTagLib {
 		g.renderErrors(attrs)
 	}
 
-	def button = { attrs ->
+	def button = { attrs, body ->
 		def config = grailsApplication.config.grails.paypal
 		def itemName = attrs.itemName
 		def itemNumber = attrs.itemNumber
 		def amount = attrs.amount
-		def discountAmount = attrs.discountAmount
+		def discountAmount = attrs.discountAmount ?: "0.0"
 		def tax = attrs.tax ?: "0.0"
 		def buyerId = attrs.buyerId
-		def buttonSrc = attrs.buttonSrc ?: "https://www.paypal.com/en_US/i/btn/btn_buynow_LG.gif"
-		def buttonAlt = attrs.buttonAlt ?: "PayPal - The safer, easier way to pay online!"
+		// def buttonSrc = attrs.buttonSrc ?: "https://www.paypal.com/en_US/i/btn/btn_buynow_LG.gif"
+		// def buttonAlt = attrs.buttonAlt ?: "PayPal - The safer, easier way to pay online!"
 		def currency = attrs.currency ?: Currency.getInstance("USD")
 		def returnAction = attrs.returnAction ? "${hiddenField(name:'returnAction', value:attrs.returnAction)}" : ""
 		def returnController = attrs.returnController ? "${hiddenField(name:'returnController', value:attrs.returnController)}" : ""
@@ -52,7 +52,7 @@ class PaypalTagLib {
 					${hiddenField(name:'tax', value:tax)}
 					${hiddenField(name:'buyerId', value:buyerId)}
 					${hiddenField(name:'currency', value:currency)}
-					<input type=\"image\" src=\"${buttonSrc}\" border=\"0\" name=\"submit\" alt=\"${buttonAlt}\">
+					${body()}
 					<img alt="" border=\"0\" src=\"https://www.paypal.com/en_US/i/scr/pixel.gif\" width=\"1\" height=\"1\">
 					"""
 			}
